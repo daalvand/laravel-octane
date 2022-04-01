@@ -1,0 +1,4 @@
+src/.env
+src/auth.json
+src/vendor
+src/storage

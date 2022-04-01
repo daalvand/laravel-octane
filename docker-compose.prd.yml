@@ -1,0 +1,58 @@
+version: "3.9"
+networks:
+  Octane:
+    name: Octane
+    driver: bridge
+services:
+
+  app:
+    build:
+      context: .
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    container_name: OctaneApp
+    working_dir: /var/www/html
+    ports:
+      - ${NGINX_PORT:-8080}:8080
+      - ${SWOOLE_PORT:-8090}:8090
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - Octane
+    volumes:
+      - ../../volumes/storage:/var/www/html/storage
+      - ../../volumes/vendor:/var/www/html/vendor
+      - ../../volumes/.env:/var/www/html/.env
+      - ../../volumes/home:/home/www-data
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - mysql
+
+  redis:
+    image: "redis:alpine"
+    user: ${GID:-1000}:${UID:-1000}
+    container_name: OctaneRedis
+    restart: unless-stopped
+    networks:
+      - Octane
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+
+  mysql:
+    image: library/mysql:8.0.25
+    user: ${GID:-1000}:${UID:-1000}
+    container_name: OctaneMySQL
+    ports:
+      - ${MYSQL_PORT:-3306}:3306
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-octane}
+      MYSQL_USER: ${MYSQL_USERNAME:-octane}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-octane_secret}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-octane_secret}
+    networks:
+      - Octane
+    volumes:
+      - ../../volumes/mysql:/var/lib/mysql
