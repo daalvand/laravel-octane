@@ -25,6 +25,7 @@ define_variables:
 make_infstructure:
   stage: infstructure
   script:
+    - echo $NEW_RELEASE_DIR
     - mkdir -p ${NEW_RELEASE_DIR}
     - cp -r . ${NEW_RELEASE_DIR}
     - rm -rf ${NEW_RELEASE_DIR}/.git
