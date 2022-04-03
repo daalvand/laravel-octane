@@ -75,10 +75,6 @@ composer:
 
 code_style:
   stage: test
-  dependencies:
-    - composer
-  needs:
-    - composer
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app $NEW_RELEASE_DIR/vendor/bin/phpcs --standard=./phpcs.xml $NEW_RELEASE_DIR/src
   only:
@@ -89,10 +85,6 @@ code_style:
 
 larastan:
   stage: test
-  dependencies:
-    - composer
-  needs:
-    - composer
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app $NEW_RELEASE_DIR/vendor/bin/phpstan analyse -c phpstan.neon --memory-limit 1G
   only:
