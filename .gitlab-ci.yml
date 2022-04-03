@@ -1,5 +1,5 @@
 stages:
-  - clone
+  - start
   - praparation
   - test
   - build
@@ -10,8 +10,8 @@ variables:
   VOLUMES_DIR: $DEPLOY_BASE_DIR/volumes
 
 
-clone:
-  stage: clone
+start:
+  stage: start
   script:
     - export NEW_RELEASE_DIR=$DEPLOY_BASE_DIR/releases/$(date +%Y_%m_%d_%H_%M_%S)
     - echo "NEW_RELEASE_DIR=$NEW_RELEASE_DIR" >> variables.env
@@ -19,6 +19,7 @@ clone:
     - mkdir -p $NEW_RELEASE_DIR
     - cp -r . $NEW_RELEASE_DIR
     - rm -rf $NEW_RELEASE_DIR/.git
+    - docker-compose -f $NEW_RELEASE_DIR/docker-compose.prod.yml build
   artifacts:
     reports:
       dotenv: variables.env
@@ -50,9 +51,6 @@ link_environment_variables:
     - if [ ! -f $VOLUMES_DIR/.env ]; then cp $NEW_RELEASE_DIR/src/.env.example $VOLUMES_DIR/.env; fi
     - if [ ! -f $VOLUMES_DIR/.dockerenv ]; then cp $NEW_RELEASE_DIR/.env.example $VOLUMES_DIR/.dockerenv; fi
     - ln -nfs $VOLUMES_DIR/.dockerenv $NEW_RELEASE_DIR/.env
-
-    - echo "key generation"
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app php artisan key:generate
   only:
     variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
@@ -63,9 +61,10 @@ composer:
   stage: praparation
   script:
     - echo "Installing composer dependencies"
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app cat composer.json
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app composer install 
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app composer install 
       --prefer-dist --no-interaction --no-progress --optimize-autoloader
+    - echo "key generation"
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app php artisan key:generate
   only:
     variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
@@ -76,7 +75,7 @@ composer:
 code_style:
   stage: test
   script:
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app
       php ./vendor/bin/phpcs --standard=./phpcs.xml ./
   only:
     variables:
@@ -87,7 +86,7 @@ code_style:
 larastan:
   stage: test
   script:
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app 
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app 
       php ./vendor/bin/phpstan analyse -c ./src/phpstan.neon --memory-limit 1G -- ./
   only:
     variables:
@@ -100,7 +99,7 @@ build:
   script:
     - echo 'Migrating database'
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml up -d mysql
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app php artisan migrate --force
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app php artisan migrate --force
 
     - echo 'Switching to new docker container'
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml up --force-recreate --build --remove-orphans -d
