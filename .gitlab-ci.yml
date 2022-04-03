@@ -72,7 +72,7 @@ larastan:
   stage: test
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app 
-      php ./vendor/bin/phpstan analyse -c ./phpstan.neon --memory-limit 1G -- ./
+      php ./vendor/bin/phpstan analyse -c ./phpstan.neon --memory-limit 1G
   only:
     variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
