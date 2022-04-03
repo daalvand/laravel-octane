@@ -65,7 +65,7 @@ composer:
     - echo "Installing composer dependencies"
     - cd $NEW_RELEASE_DIR
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app composer install 
-      --prefer-dist --no-interaction --no-progress --no-suggest --optimize-autoloader
+      --prefer-dist --no-interaction --no-progress --optimize-autoloader
   only:
     variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
@@ -76,7 +76,6 @@ composer:
 code_style:
   stage: test
   script:
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app ls -al ./vendor/bin
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app
       php ./vendor/bin/phpcs --standard=./phpcs.xml ./
   only:
