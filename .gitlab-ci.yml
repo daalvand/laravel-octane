@@ -76,6 +76,7 @@ composer:
 code_style:
   stage: test
   script:
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app ls -al ./vendor/bin
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app
       php ./vendor/bin/phpcs --standard=./phpcs.xml ./
   only:
