@@ -47,5 +47,6 @@ COPY --chown=www-data:www-data ./src $PWD
 
 RUN composer run-script post-autoload-dump
 
+RUN ls -al
 #copy project src
 CMD ["/usr/bin/supervisord", "-nc", "/etc/supervisord.conf"]
