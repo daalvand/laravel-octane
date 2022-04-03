@@ -22,6 +22,11 @@ clone:
   artifacts:
     reports:
       dotenv: variables.env
+  only:
+    variables:
+      - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
+  tags:
+    - $CI_COMMIT_BRANCH
 
 create_volume_directories:
   stage: praparation
@@ -76,6 +81,11 @@ code_style:
     - composer
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app ./vendor/bin/phpcs --standard=./phpcs.xml ."
+  only:
+    variables:
+      - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
+  tags:
+    - $CI_COMMIT_BRANCH
 
 larastan:
   stage: test
@@ -85,6 +95,11 @@ larastan:
     - composer
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app ./vendor/bin/phpstan analyse -c phpstan.neon --memory-limit 1G
+  only:
+    variables:
+      - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
+  tags:
+    - $CI_COMMIT_BRANCH
 
 build:
   stage: build
