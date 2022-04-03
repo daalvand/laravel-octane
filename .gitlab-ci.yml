@@ -20,7 +20,7 @@ start:
     - cp -r . $NEW_RELEASE_DIR
     - rm -rf $NEW_RELEASE_DIR/.git
 
-    - docker-compose -f $NEW_RELEASE_DIR/docker-compose.prd.yml build
+    - docker-compose -f $NEW_RELEASE_DIR/docker-compose.prod.yml build
   artifacts:
     reports:
       dotenv: variables.env
@@ -57,6 +57,20 @@ link_environment_variables:
   tags:
     - $CI_COMMIT_BRANCH
 
+composer:
+  stage: praparation
+  script:
+    - echo "Installing composer dependencies"
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app composer install 
+      --prefer-dist --no-interaction --no-progress --optimize-autoloader
+    - echo "key generation"
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app php artisan key:generate
+  only:
+    variables:
+      - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
+  tags:
+    - $CI_COMMIT_BRANCH
+
 
 code_style:
   stage: test
@@ -73,7 +87,7 @@ larastan:
   stage: test
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app 
-      php ./vendor/bin/phpstan analyse -c ./phpstan.neon --memory-limit 1G -- ./
+      php ./vendor/bin/phpstan analyse -c ./src/phpstan.neon --memory-limit 1G -- ./
   only:
     variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
