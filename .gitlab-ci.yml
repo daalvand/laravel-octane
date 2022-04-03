@@ -19,7 +19,8 @@ start:
     - mkdir -p $NEW_RELEASE_DIR
     - cp -r . $NEW_RELEASE_DIR
     - rm -rf $NEW_RELEASE_DIR/.git
-    - docker-compose -f $NEW_RELEASE_DIR/docker-compose.prod.yml build
+
+    - docker-compose -f $NEW_RELEASE_DIR/docker-compose.prd.yml build
   artifacts:
     reports:
       dotenv: variables.env
