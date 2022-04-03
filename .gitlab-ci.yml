@@ -34,6 +34,7 @@ create_volume_directories:
     - echo "Linking volume directories"
     - if [ ! -d $VOLUMES_DIR/storage ]; then mkdir -p $VOLUMES_DIR/storage && 
       cp -r $NEW_RELEASE_DIR/src/storage $VOLUMES_DIR; fi
+    - if [ ! -d $VOLUMES_DIR/vendor ]; then mkdir -p $VOLUMES_DIR/vendor; fi
     - if [ ! -d $VOLUMES_DIR/mysql ]; then mkdir -p $VOLUMES_DIR/mysql; fi
     - if [ ! -d $VOLUMES_DIR/home ]; then mkdir -p $VOLUMES_DIR/home; fi
   only:
@@ -57,6 +58,20 @@ link_environment_variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
   tags:
     - $CI_COMMIT_BRANCH
+
+composer:
+  stage: praparation
+  script:
+    - echo "Installing composer dependencies"
+    - cd $NEW_RELEASE_DIR
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app composer install 
+      --prefer-dist --no-interaction --no-progress --optimize-autoloader
+  only:
+    variables:
+      - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
+  tags:
+    - $CI_COMMIT_BRANCH
+
 
 code_style:
   stage: test
