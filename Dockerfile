@@ -28,6 +28,7 @@ COPY --chown=www-data:www-data ./docker/nginx/default.conf /etc/nginx/conf.d/def
 COPY --chown=www-data:www-data ./docker/nginx/swoole.conf /etc/nginx/conf.d/swoole.conf
 COPY --chown=www-data:www-data ./docker/php/php.ini /usr/local/etc/php/php.ini
 COPY --chown=www-data:www-data ./docker/php/www.conf /usr/local/etc/php-fpm.d/www.conf
+RUN chown -R www-data:www-data /var/lib/nginx /var/log/nginx  /home/www-data/
 
 # cronjobs
 COPY --chown=www-data:www-data  ./docker/cronjobs /cronjobs
@@ -36,17 +37,15 @@ RUN /usr/bin/crontab -u www-data /cronjobs
 #composer
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
-COPY --chown=www-data:www-data ./src/composer.lock ./src/composer.json ./
+USER www-data
+
+COPY ./src/composer.lock ./src/composer.json ./
 
 RUN COMPOSER_AUTH="$COMPOSER_AUTH" composer install --no-scripts --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
-COPY --chown=www-data:www-data ./src $PWD
+COPY ./src $PWD
 
 RUN composer run-script post-autoload-dump
-RUN ls -al .
 
 #copy project src
-RUN chown -R www-data:www-data /var/lib/nginx /var/log/nginx  /home/www-data/
-
-USER www-data
 CMD ["/usr/bin/supervisord", "-nc", "/etc/supervisord.conf"]
