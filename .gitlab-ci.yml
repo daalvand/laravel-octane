@@ -49,6 +49,7 @@ link_environment_variables:
   script:
     - echo "Linking environment variables"
     - if [ ! -f $VOLUMES_DIR/.env ]; then cp $NEW_RELEASE_DIR/src/.env.example $VOLUMES_DIR/.env; fi
+    - if [ ! -f $VOLUMES_DIR/.env.testing ]; then cp $NEW_RELEASE_DIR/src/.env.example $VOLUMES_DIR/.env.testing; fi
     - if [ ! -f $VOLUMES_DIR/.dockerenv ]; then cp $NEW_RELEASE_DIR/.env.example $VOLUMES_DIR/.dockerenv; fi
     - ln -nfs $VOLUMES_DIR/.dockerenv $NEW_RELEASE_DIR/.env
   only:
@@ -57,7 +58,7 @@ link_environment_variables:
   tags:
     - $CI_COMMIT_BRANCH
 
-code_style:
+phpcs:
   stage: test
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app
@@ -73,6 +74,16 @@ larastan:
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app 
       php ./vendor/bin/phpstan analyse -c ./phpstan.neon --memory-limit 1G
+  only:
+    variables:
+      - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
+  tags:
+    - $CI_COMMIT_BRANCH
+
+phpunit:
+  stage: test
+  script:
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app php artisan test
   only:
     variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
