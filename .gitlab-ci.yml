@@ -7,7 +7,7 @@ stages:
 
 variables:
   DEPLOY_BASE_DIR: /home/matthew/laravel/octane/$CI_COMMIT_BRANCH
-  VOLUMES_DIR: <<DEPLOY_BASE_DIR>>/volumes
+  VOLUMES_DIR: $DEPLOY_BASE_DIR/volumes
 
 
 clone:
