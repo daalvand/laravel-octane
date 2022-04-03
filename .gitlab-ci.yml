@@ -77,7 +77,7 @@ code_style:
   stage: test
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app
-      ./vendor/bin/phpcs --standard=./phpcs.xml ./
+      php ./vendor/bin/phpcs --standard=./phpcs.xml ./
   only:
     variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
@@ -88,7 +88,7 @@ larastan:
   stage: test
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app 
-      ./vendor/bin/phpstan analyse -c ./src/phpstan.neon --memory-limit 1G -- ./
+      php ./vendor/bin/phpstan analyse -c ./src/phpstan.neon --memory-limit 1G -- ./
   only:
     variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
