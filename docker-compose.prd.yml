@@ -22,7 +22,6 @@ services:
       - Octane
     volumes:
       - ../../volumes/storage:/var/www/html/storage
-      - ../../volumes/vendor:/var/www/html/vendor
       - ../../volumes/.env:/var/www/html/.env
       - ../../volumes/home:/home/www-data
     restart: unless-stopped
