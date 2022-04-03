@@ -77,15 +77,6 @@ code_style:
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app ./vendor/bin/phpcs --standard=./phpcs.xml"
 
-enlightn:
-  stage: test
-  dependencies:
-    - composer
-  needs:
-    - composer
-  script:
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app php -d memory_limit=1G artisan enlightn --ci --details
-
 larastan:
   stage: test
   dependencies:
