@@ -39,11 +39,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
 USER www-data
 
-COPY ./src/composer.lock ./src/composer.json ./
+COPY --chown=www-data:www-data ./src/composer.lock ./src/composer.json ./
 
 RUN COMPOSER_AUTH="$COMPOSER_AUTH" composer install --no-scripts --prefer-dist --no-interaction --no-progress --optimize-autoloader
 
-COPY ./src $PWD
+COPY --chown=www-data:www-data ./src $PWD
 
 RUN composer run-script post-autoload-dump
 
