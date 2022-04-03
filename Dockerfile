@@ -36,8 +36,16 @@ RUN /usr/bin/crontab -u www-data /cronjobs
 #composer
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
-#copy project src
+COPY --chown=www-data:www-data ./src/composer.lock ./src/composer.json ./
+
+RUN COMPOSER_AUTH="$COMPOSER_AUTH" composer install --no-scripts --prefer-dist --no-interaction --no-progress --optimize-autoloader
+
 COPY --chown=www-data:www-data ./src $PWD
+
+RUN composer run-script post-autoload-dump
+RUN ls -al .
+
+#copy project src
 RUN chown -R www-data:www-data /var/lib/nginx /var/log/nginx  /home/www-data/
 
 USER www-data
