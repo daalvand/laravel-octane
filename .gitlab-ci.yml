@@ -1,71 +1,115 @@
 stages:
-  - variables
-  - infstructure
+  - clone
+  - praparation
+  - test
   - build
   - final
 
 variables:
   DEPLOY_BASE_DIR: /home/matthew/laravel/octane/$CI_COMMIT_BRANCH
+  VOLUMES_DIR: <<DEPLOY_BASE_DIR>>/volumes
 
-define_variables:
-  stage: variables
+
+make_new_release:
+  stage: clone
   script:
-    - echo "NEW_RELEASE_DIR=${DEPLOY_BASE_DIR}/releases/$(date +%Y_%m_%d_%H_%M_%S)" >> variables.env
-    - echo "VOLUMES_DIR=${DEPLOY_BASE_DIR}/volumes" >> variables.env
+    - export NEW_RELEASE_DIR=$DEPLOY_BASE_DIR/releases/$(date +%Y_%m_%d_%H_%M_%S)
+    - echo "NEW_RELEASE_DIR=$NEW_RELEASE_DIR" >> variables.env
+
+    - mkdir -p $NEW_RELEASE_DIR
+    - cp -r . $NEW_RELEASE_DIR
+    - rm -rf $NEW_RELEASE_DIR/.git
   artifacts:
     reports:
       dotenv: variables.env
-  only:
-    variables:
-      - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
-  tags:
-    - $CI_COMMIT_BRANCH
 
-
-make_infstructure:
-  stage: infstructure
+create_volume_directories:
+  stage: praparation
   script:
-    - echo $NEW_RELEASE_DIR
-    - mkdir -p ${NEW_RELEASE_DIR}
-    - cp -r . ${NEW_RELEASE_DIR}
-    - rm -rf ${NEW_RELEASE_DIR}/.git
-
-    - echo "Linking storage directory"
-    - if [ ! -d $VOLUMES_DIR/storage ]; then mkdir -p $VOLUMES_DIR/storage && cp -r ${NEW_RELEASE_DIR}/src/storage $VOLUMES_DIR; fi
+    - echo "Linking volume directories"
+    - if [ ! -d $VOLUMES_DIR/storage ]; then mkdir -p $VOLUMES_DIR/storage && 
+      cp -r $NEW_RELEASE_DIR/src/storage $VOLUMES_DIR; fi
     - if [ ! -d $VOLUMES_DIR/vendor ]; then mkdir -p $VOLUMES_DIR/vendor; fi
     - if [ ! -d $VOLUMES_DIR/mysql ]; then mkdir -p $VOLUMES_DIR/mysql; fi
     - if [ ! -d $VOLUMES_DIR/home ]; then mkdir -p $VOLUMES_DIR/home; fi
-
-    - if [ ! -f $VOLUMES_DIR/.env ]; then cp ${NEW_RELEASE_DIR}/src/.env.example $VOLUMES_DIR/.env; fi
-    - if [ ! -f $VOLUMES_DIR/.dockerenv ]; then cp ${NEW_RELEASE_DIR}/.env.example $VOLUMES_DIR/.dockerenv; fi
-    - ln -nfs $VOLUMES_DIR/.dockerenv ${NEW_RELEASE_DIR}/.env
   only:
     variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
   tags:
     - $CI_COMMIT_BRANCH
+
+link_environment_variables:
+  stage: praparation
+  script:
+    - echo "Linking environment variables"
+    - if [ ! -f $VOLUMES_DIR/.env ]; then cp $NEW_RELEASE_DIR/src/.env.example $VOLUMES_DIR/.env; fi
+    - if [ ! -f $VOLUMES_DIR/.dockerenv ]; then cp $NEW_RELEASE_DIR/.env.example $VOLUMES_DIR/.dockerenv; fi
+    - ln -nfs $VOLUMES_DIR/.dockerenv $NEW_RELEASE_DIR/.env
+
+    - echo "key generation"
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app php artisan key:generate
+  only:
+    variables:
+      - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
+  tags:
+    - $CI_COMMIT_BRANCH
+
+composer:
+  stage: praparation
+  script:
+    - echo "Installing composer dependencies"
+    - cd $NEW_RELEASE_DIR
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app composer install 
+      --prefer-dist --no-interaction --no-progress --no-suggest --optimize-autoloader
+  only:
+    variables:
+      - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
+  tags:
+    - $CI_COMMIT_BRANCH
+
+
+code_style:
+  stage: test
+  dependencies:
+    - composer
+  needs:
+    - composer
+  script:
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app ./vendor/bin/phpcs --standard=./phpcs.xml"
+
+enlightn:
+  stage: test
+  dependencies:
+    - composer
+  needs:
+    - composer
+  script:
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app php -d memory_limit=1G artisan enlightn --ci --details
+
+larastan:
+  stage: test
+  dependencies:
+    - composer
+  needs:
+    - composer
+  script:
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app ./vendor/bin/phpstan analyse -c phpstan.neon --memory-limit 1G
 
 build:
   stage: build
   script:
-    - echo 'Installing composer dependencies'
-    - docker-compose -f  ${NEW_RELEASE_DIR}/docker-compose.prd.yml run --rm app composer install -o --no-dev
-
-    - echo 'Key generating'
-    - docker-compose -f  ${NEW_RELEASE_DIR}/docker-compose.prd.yml run --rm app php artisan key:generate
-
     - echo 'Migrating database'
-    - docker-compose -f  ${NEW_RELEASE_DIR}/docker-compose.prd.yml up -d mysql
-    - docker-compose -f  ${NEW_RELEASE_DIR}/docker-compose.prd.yml run --rm app php artisan migrate --force
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml up -d mysql
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app php artisan migrate --force
 
     - echo 'Switching to new docker container'
-    - docker-compose -f  ${NEW_RELEASE_DIR}/docker-compose.prd.yml up --force-recreate --build --remove-orphans -d
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml up --force-recreate --build --remove-orphans -d
 
     - echo 'Clearing cache'
-    - docker-compose -f  ${NEW_RELEASE_DIR}/docker-compose.prd.yml exec -T app php artisan optimize
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml exec -T app php artisan optimize
 
     - echo 'Linking current release'
-    - ln -nfs ${NEW_RELEASE_DIR} ${DEPLOY_BASE_DIR}/current
+    - ln -nfs $NEW_RELEASE_DIR $DEPLOY_BASE_DIR/current
   only:
     variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
@@ -76,7 +120,7 @@ final:
   stage: final
   script:
     - echo 'Cleaning old releases'
-    - cd ${DEPLOY_BASE_DIR}/releases
+    - cd $DEPLOY_BASE_DIR/releases
     - ls -1d */ -t | tail -n +6 | xargs rm -rf
     - echo "Envoy deployment script finished.\n";
   only:

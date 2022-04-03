@@ -8,6 +8,7 @@
         "php": "^8.0.2",
         "ext-pdo": "*",
         "ext-swoole": "*",
+        "enlightn/enlightn": "^1.25",
         "guzzlehttp/guzzle": "^7.4",
         "laravel/framework": "^9.5",
         "laravel/horizon": "^5.9",
