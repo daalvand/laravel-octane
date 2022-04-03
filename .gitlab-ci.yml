@@ -63,7 +63,7 @@ composer:
   stage: praparation
   script:
     - echo "Installing composer dependencies"
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app echo composer.json
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app cat composer.json
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app composer install 
       --prefer-dist --no-interaction --no-progress --optimize-autoloader
   only:
