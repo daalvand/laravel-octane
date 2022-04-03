@@ -36,7 +36,6 @@ create_volume_directories:
     - echo "Linking volume directories"
     - if [ ! -d $VOLUMES_DIR/storage ]; then mkdir -p $VOLUMES_DIR/storage && 
       cp -r $NEW_RELEASE_DIR/src/storage $VOLUMES_DIR; fi
-    - if [ ! -d $VOLUMES_DIR/vendor ]; then mkdir -p $VOLUMES_DIR/vendor; fi
     - if [ ! -d $VOLUMES_DIR/mysql ]; then mkdir -p $VOLUMES_DIR/mysql; fi
     - if [ ! -d $VOLUMES_DIR/home ]; then mkdir -p $VOLUMES_DIR/home; fi
   only:
@@ -88,7 +87,7 @@ larastan:
   stage: test
   script:
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app 
-      php ./vendor/bin/phpstan analyse -c ./src/phpstan.neon --memory-limit 1G -- ./
+      php ./vendor/bin/phpstan analyse -c ./phpstan.neon --memory-limit 1G -- ./
   only:
     variables:
       - ( $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "staging" || $CI_COMMIT_BRANCH == "develop" )
