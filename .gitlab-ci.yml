@@ -10,7 +10,7 @@ variables:
   VOLUMES_DIR: <<DEPLOY_BASE_DIR>>/volumes
 
 
-make_new_release:
+clone:
   stage: clone
   script:
     - export NEW_RELEASE_DIR=$DEPLOY_BASE_DIR/releases/$(date +%Y_%m_%d_%H_%M_%S)
@@ -75,7 +75,7 @@ code_style:
   needs:
     - composer
   script:
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app ./vendor/bin/phpcs --standard=./phpcs.xml"
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm app ./vendor/bin/phpcs --standard=./phpcs.xml ."
 
 larastan:
   stage: test
@@ -96,9 +96,6 @@ build:
     - echo 'Switching to new docker container'
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml up --force-recreate --build --remove-orphans -d
 
-    - echo 'Clearing cache'
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml exec -T app php artisan optimize
-
     - echo 'Linking current release'
     - ln -nfs $NEW_RELEASE_DIR $DEPLOY_BASE_DIR/current
   only:
@@ -110,9 +107,13 @@ build:
 final:
   stage: final
   script:
+    - echo 'Clearing cache'
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml exec -T app php artisan optimize
+
     - echo 'Cleaning old releases'
     - cd $DEPLOY_BASE_DIR/releases
     - ls -1d */ -t | tail -n +6 | xargs rm -rf
+
     - echo "Envoy deployment script finished.\n";
   only:
     variables:

@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="PHP_CodeSniffer"
+         xsi:noNamespaceSchemaLocation="phpcs.xsd">
+    <description>The coding standard for PHP_CodeSniffer itself.</description>
+
+    <exclude-pattern>_ide_helper.php</exclude-pattern>
+    <exclude-pattern>bootstrap/cache/*</exclude-pattern>
+    <exclude-pattern>*/migrations/*</exclude-pattern>
+    <exclude-pattern>*/storage/*</exclude-pattern>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*.blade.php</exclude-pattern>
+    <exclude-pattern>*.js</exclude-pattern>
+    <exclude-pattern>*.min.css</exclude-pattern>
+
+    <arg name="basepath" value="."/>
+    <arg name="colors"/>
+    <arg name="parallel" value="75"/>
+    <arg value="np"/>
+    <rule ref="PSR2"/>
+    <rule ref="PSR1.Methods.CamelCapsMethodName.NotCamelCaps">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+
+    <rule ref="PSR1.Classes.ClassDeclaration.MissingNamespace">
+        <exclude-pattern>database/migrations/*</exclude-pattern>
+    </rule>
+
+    <!-- Include the whole PEAR standard -->
+    <!-- <rule ref="PEAR.Commenting">-->
+    <!--     <exclude name="PEAR.Commenting.ClassComment"/>-->
+    <!--     <exclude name="PEAR.Commenting.FileComment.MissingCategoryTag"/>-->
+    <!--     <exclude name="PEAR.Commenting.FileComment.MissingPackageTag"/>-->
+    <!--     <exclude name="PEAR.Commenting.FileComment.MissingLinkTag"/>-->
+    <!--     <exclude name="PEAR.Commenting.FileComment.MissingVersion"/>-->
+    <!--     <exclude name="PEAR.Commenting.FileComment.Missing"/>-->
+    <!--     <exclude name="PEAR.Commenting.FunctionComment.Missing"/>-->
+    <!--     <exclude name="PEAR.Commenting.FunctionComment.MissingParamComment"/>-->
+    <!--     <exclude name="PEAR.Commenting.FunctionComment.MissingReturn"/>-->
+    <!--     <exclude name="PEAR.Commenting.InlineComment.Missing"/>-->
+    <!-- </rule>-->
+</ruleset>

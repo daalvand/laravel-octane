@@ -1,0 +1,19 @@
+includes:
+    - ./vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+
+    parallel:
+        jobSize: 20
+        maximumNumberOfProcesses: 32
+        minimumNumberOfJobsPerProcess: 2
+        processTimeout: 300.0
+
+    # The level 8 is the highest level
+    level: 7
+
+    ignoreErrors:
+
+    checkMissingIterableValueType: false
