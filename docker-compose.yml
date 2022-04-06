@@ -27,7 +27,13 @@ services:
     links:
       - redis
       - mysql
-
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 500M
+        reservations:
+          memory: 500M
   redis:
     image: "redis:alpine"
     user: ${GID:-1000}:${UID:-1000}
@@ -37,7 +43,13 @@ services:
       - Octane
     ports:
       - "${REDIS_PORT:-6379}:6379"
-
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 100M
+        reservations:
+          memory: 100M
   mysql:
     image: library/mysql:8.0.25
     user: ${GID:-1000}:${UID:-1000}
@@ -54,3 +66,10 @@ services:
       - Octane
     volumes:
       - ./docker/mysql/data:/var/lib/mysql
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 200M
+        reservations:
+          memory: 200M
