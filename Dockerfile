@@ -18,8 +18,8 @@ RUN apk add --no-cache ${PHPIZE_DEPS}
 RUN pecl install swoole redis && docker-php-ext-enable swoole redis
 RUN apk del ${PHPIZE_DEPS}
 
-RUN apk add --no-cache  icu-dev
-RUN docker-php-ext-install pdo_mysql intl pcntl
+RUN apk add --no-cache  icu-dev postgresql-dev
+RUN docker-php-ext-install pdo_pgsql pgsql intl pcntl
 
 # copy configs
 COPY --chown=www-data:www-data ./docker/supervisor /etc/
