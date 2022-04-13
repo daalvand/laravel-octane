@@ -96,7 +96,7 @@ build:
   stage: build
   script:
     - echo 'Migrating database'
-    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml up -d mysql
+    - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml up -d db
     - docker-compose -f  $NEW_RELEASE_DIR/docker-compose.prd.yml run --rm --no-deps app php artisan migrate --force
 
     - echo 'Switching to new docker container'
