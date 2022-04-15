@@ -220,16 +220,14 @@ return [
 
     'swoole' => [
         'options' => [
-            //0 =>DEBUG //1 =>TRACE //2 =>INFO //3 =>NOTICE //4 =>WARNING //5 =>ERROR
-            'log_level'             => 4,
+            'log_level'             => SWOOLE_LOG_WARNING,
             'log_file'              => storage_path('logs/swoole_http.log'),
-            'log_rotation'          => SWOOLE_LOG_ROTATION_DAILY,
+            'log_rotation'          => SWOOLE_LOG_ROTATION_SINGLE,
             'log_date_format'       => '%s',
-
+            'task_tmpdir'           => '/tmp',
             // // Task worker
             // 'task_ipc_mode'         => 1,
             // 'task_max_request'      => 100,
-            // 'task_tmpdir'           => '/tmp',
             // 'task_worker_num'       => 8,
             // 'task_enable_coroutine' => true,
             // 'task_use_object'       => true,
