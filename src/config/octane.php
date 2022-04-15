@@ -225,7 +225,6 @@ return [
             'log_rotation'          => SWOOLE_LOG_ROTATION_SINGLE,
             'log_date_format'       => '%s',
             'task_tmpdir'           => '/tmp',
-            // // Task worker
             // 'task_ipc_mode'         => 1,
             // 'task_max_request'      => 100,
             // 'task_worker_num'       => 8,
