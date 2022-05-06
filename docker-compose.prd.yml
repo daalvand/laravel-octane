@@ -21,10 +21,10 @@ services:
     networks:
       - Octane
     volumes:
-      - ../../volumes/storage:/var/www/html/storage
-      - ../../volumes/.env:/var/www/html/.env
-      - ../../volumes/.env.testing:/var/www/html/.env.testing
-      - ../../volumes/home:/home/www-data
+      - ${VOLUMES_PATH:-../../volumes}/storage:/var/www/html/storage
+      - ${VOLUMES_PATH:-../../volumes}/.env:/var/www/html/.env
+      - ${VOLUMES_PATH:-../../volumes}/.env.testing:/var/www/html/.env.testing
+      - ${VOLUMES_PATH:-../../volumes}/home:/home/www-data
     restart: unless-stopped
     depends_on:
       - redis
@@ -37,6 +37,8 @@ services:
     restart: unless-stopped
     networks:
       - Octane
+    volumes:
+      - ${VOLUMES_PATH:-../../volumes}/redis/data:/data
     ports:
       - "${REDIS_PORT:-6379}:6379"
 
@@ -55,7 +57,7 @@ services:
     networks:
       - Octane
     volumes:
-      - ../../volumes/postgres:/tmp/postgres
+      - ${VOLUMES_PATH:-../../volumes}/postgres:/tmp/postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready", "-U", "postgres"]
       interval: 30s

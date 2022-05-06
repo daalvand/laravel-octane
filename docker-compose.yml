@@ -35,6 +35,8 @@ services:
     restart: unless-stopped
     networks:
       - Octane
+    volumes:
+      - ./docker/redis/data:/data
     ports:
       - "${REDIS_PORT:-6379}:6379"
 
