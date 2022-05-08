@@ -33,10 +33,12 @@ services:
     user: ${GID:-1000}:${UID:-1000}
     container_name: OctaneRedis
     restart: unless-stopped
+    volumes:
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./docker/redis/data:/tmp/data
     networks:
       - Octane
-    volumes:
-      - ./docker/redis/data:/data
+    command: redis-server /usr/local/etc/redis/redis.conf
     ports:
       - "${REDIS_PORT:-6379}:6379"
 
