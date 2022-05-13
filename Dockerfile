@@ -14,13 +14,14 @@ RUN groupmod -g $GID www-data
 RUN usermod -u $UID www-data
 
 # install extentions
-RUN apk add --no-cache ${PHPIZE_DEPS}
-RUN pecl install -D 'enable-sockets="yes" enable-openssl="yes" enable-http2="yes" enable-mysqlnd="yes" enable-swoole-json="yes" enable-swoole-curl="yes" enable-cares="yes"' swoole
+RUN apk add --no-cache ${PHPIZE_DEPS} 
+RUN docker-php-ext-install sockets
+RUN pecl install -D 'enable-sockets="yes" enable-openssl="no" enable-http2="no" enable-mysqlnd="no" enable-swoole-json="no" enable-swoole-curl="no" enable-cares="no"' swoole
 RUN pecl install redis
 RUN docker-php-ext-enable swoole redis
 RUN apk del ${PHPIZE_DEPS}
 
-RUN apk add --no-cache  icu-dev postgresql-dev
+RUN apk add --no-cache icu-dev postgresql-dev
 RUN docker-php-ext-install pdo_pgsql pgsql intl pcntl
 
 # copy configs
