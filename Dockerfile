@@ -15,7 +15,7 @@ RUN usermod -u $UID www-data
 
 # install extentions
 RUN apk add --no-cache ${PHPIZE_DEPS}
-RUN pecl install -D 'enable-sockets="yes" enable-openssl="yes" enable-http2="yes" enable-mysqlnd="yes" enable-swoole-json="no" enable-swoole-curl="yes" enable-cares="yes"' swoole
+RUN pecl install -D 'enable-sockets="yes" enable-openssl="yes" enable-http2="yes" enable-mysqlnd="yes" enable-swoole-json="yes" enable-swoole-curl="yes" enable-cares="yes"' swoole
 RUN pecl install redis
 RUN docker-php-ext-enable swoole redis
 RUN apk del ${PHPIZE_DEPS}
