@@ -34,7 +34,7 @@ create_volume_directories:
   stage: praparation
   script:
     - echo "Linking volume directories"
-    - if [ ! -d $VOLUMES_DIR/storage ]; then mkdir -p $VOLUMES_DIR/storage fi 
+    - if [ ! -d $VOLUMES_DIR/storage ]; then mkdir -p $VOLUMES_DIR/storage; fi 
     - cp -fr $NEW_RELEASE_DIR/src/storage $VOLUMES_DIR
     - if [ ! -d $VOLUMES_DIR/redis ]; then mkdir -p $VOLUMES_DIR/redis; fi 
     - cp -fr $NEW_RELEASE_DIR/docker/redis $VOLUMES_DIR
