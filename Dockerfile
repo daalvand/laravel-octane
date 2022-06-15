@@ -14,9 +14,9 @@ RUN groupmod -g $GID www-data
 RUN usermod -u $UID www-data
 
 # install extentions
-RUN apk add --no-cache ${PHPIZE_DEPS} 
+RUN apk add --no-cache ${PHPIZE_DEPS}
 RUN docker-php-ext-install sockets
-RUN pecl install -D 'enable-sockets="yes" enable-openssl="no" enable-http2="no" enable-mysqlnd="no" enable-swoole-json="no" enable-swoole-curl="no" enable-cares="no"' swoole
+RUN pecl install -D 'enable-sockets="no" enable-openssl="no" enable-http2="no" enable-mysqlnd="no" enable-swoole-json="no" enable-swoole-curl="no" enable-cares="no"' swoole
 RUN pecl install redis
 RUN docker-php-ext-enable swoole redis
 RUN apk del ${PHPIZE_DEPS}
@@ -34,21 +34,16 @@ COPY --chown=www-data:www-data ./docker/php/www.conf /usr/local/etc/php-fpm.d/ww
 RUN chown -R www-data:www-data /var/lib/nginx /var/log/nginx  /home/www-data/
 
 # cronjobs
-COPY --chown=www-data:www-data  ./docker/cronjobs /cronjobs
-RUN /usr/bin/crontab -u www-data /cronjobs
+RUN apk add --no-cache dcron libcap && chown www-data:www-data /usr/sbin/crond && setcap cap_setgid=ep /usr/sbin/crond
+COPY --chown=www-data:www-data ./docker/cronjobs /etc/crontabs/www-data
 
 #composer
 COPY --from=composer:latest /usr/bin/composer /usr/local/bin/composer
 
 USER www-data
-
 COPY --chown=www-data:www-data ./src/composer.lock ./src/composer.json ./
-
 RUN COMPOSER_AUTH="$COMPOSER_AUTH" composer install --no-scripts --prefer-dist --no-interaction --no-progress --optimize-autoloader
-
 COPY --chown=www-data:www-data ./src $PWD
-
 RUN composer run-script post-autoload-dump
 
-#copy project src
 CMD ["/usr/bin/supervisord", "-nc", "/etc/supervisord.conf"]
